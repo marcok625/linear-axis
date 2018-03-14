@@ -1,0 +1,209 @@
+const int STEP_PIN = 9;
+const int Enable_PIN = 13;
+const int DIR_PIN = 8;
+const int START_PIN = 4;
+const int FINISH_PIN = 3;
+const int buttonPin_RUN = 5;
+int buttonState =0;
+int lettura = LOW;
+byte stato=0;
+long currentMicros = 0;
+long previousMicros = 0;
+const int K = 550; // giri/min  
+const int N= 200; // step del motore
+
+void setup()
+{
+   pinMode(buttonPin_RUN, INPUT);
+   pinMode(START_PIN, INPUT);
+   pinMode(FINISH_PIN, INPUT);
+   pinMode(STEP_PIN, OUTPUT);
+   pinMode(Enable_PIN, OUTPUT);
+   pinMode(DIR_PIN, OUTPUT);
+   digitalWrite(Enable_PIN,HIGH);
+   
+   
+   
+ }
+
+void loop() {
+    digitalWrite(Enable_PIN,HIGH);
+    delay(300);//Permette di alzare il dito dal pulsante, quando si preme nella funzione rotazione()
+   
+    if(digitalRead (buttonPin_RUN)==HIGH && digitalRead (START_PIN)==0 && digitalRead (FINISH_PIN)==1)//Premendo il pulsante a motore parte se premuto il finecorsa rotazione antioraria
+            rotazioneantioraria();
+
+    if(digitalRead (buttonPin_RUN)==HIGH && digitalRead (START_PIN)==1 && digitalRead (FINISH_PIN)==0)//Premendo il pulsante a motore parte se premuto il finecorsa rotazione oraria
+            rotazioneoraria();
+
+    if(digitalRead (buttonPin_RUN)==HIGH && digitalRead (START_PIN)!=1 && digitalRead (FINISH_PIN)!=1 && digitalRead(Enable_PIN)!=LOW)//homing
+            homing();        
+ } 
+
+
+  
+void rotazioneantioraria(){
+
+
+float F;
+float L;
+float G;
+float B;
+
+ F= (K/60);  //giri al secondo
+ L= (1/F);   //tempo che impiega per fare un giro in secondi
+ G= (L/N);   // tempo per ogni step del motore in secondi
+ B= (G*1000000); // converto il tempo da secondi in microsecondi
+
+
+float a=3500.0; // delay massimo- minima velocita di partenza
+     
+
+    delay(300);        //Permette di alzare il dito dal pulsante, altrimente legge HIGH anche quando non deve.
+    while(1){          // Esegue di continuo
+        
+  
+  float d =K*20.0;
+  float h= d/100.0;  // percentuale di tempo che toglie per accelerare
+  
+       if (a<=B) a=B;
+        else a=a-h;
+        
+        
+        long delay_Micros = a ;
+        currentMicros = micros();
+       if(currentMicros - previousMicros >= delay_Micros)
+{
+          previousMicros = currentMicros;
+         
+          digitalWrite(Enable_PIN,LOW);
+          digitalWrite(DIR_PIN,LOW); // antiorario
+          digitalWrite(STEP_PIN,HIGH);
+          delayMicroseconds(a);
+          digitalWrite(STEP_PIN,LOW);
+          delayMicroseconds(a);
+          
+          
+        } 
+        
+
+          if(digitalRead (buttonPin_RUN)==HIGH || digitalRead (START_PIN)==1){//se premi il pulsante quanto il motore è in funzione o il finecorsa viene premuto
+              
+                  return;// esce dalla funzione e termina la rotazione...
+       
+         
+} 
+}
+} 
+
+
+void rotazioneoraria(){
+
+
+float F;
+float L;
+float G;
+float B;
+
+ F= (K/60);  //giri al secondo
+ L= (1/F);   //tempo che impiega per fare un giro in secondi
+ G= (L/N);   // tempo per ogni step del motore in secondi
+ B= (G*1000000); // converto il tempo da secondi in microsecondi
+
+
+float a=3500.0; // delay massimo- minima velocita di partenza
+     
+
+    delay(300);        //Permette di alzare il dito dal pulsante, altrimente legge HIGH anche quando non deve.
+    while(1){          // Esegue di continuo
+        
+  
+  float d =K*20.0;
+  float h= d/100.0;  // percentuale di tempo che toglie per accelerare
+  
+       if (a<=B) a=B;
+        else a=a-h;
+        
+        
+        long delay_Micros = a ;
+        currentMicros = micros();
+       if(currentMicros - previousMicros >= delay_Micros)
+{
+          previousMicros = currentMicros;
+         
+          digitalWrite(Enable_PIN,LOW);
+          digitalWrite(DIR_PIN,HIGH); // orario
+          digitalWrite(STEP_PIN,HIGH);
+          delayMicroseconds(a);
+          digitalWrite(STEP_PIN,LOW);
+          delayMicroseconds(a);
+          
+          
+        } 
+        
+
+          if(digitalRead (buttonPin_RUN)==HIGH || digitalRead (FINISH_PIN)==1){//se premi il pulsante quanto il motore è in funzione o il finecorsa viene premuto
+              
+                  return;// esce dalla funzione e termina la rotazione...
+       
+         
+} 
+}
+} 
+
+
+void homing(){
+
+float F;
+float L;
+float G;
+float B;
+float P;
+
+P= K/2; // dimezza la velocità per spostarsi in homing
+
+ F= (P/60);  //giri al secondo
+ L= (1/F);   //tempo che impiega per fare un giro in secondi
+ G= (L/N);   // tempo per ogni step del motore in secondi
+ B= (G*1000000); // converto il tempo da secondi in microsecondi
+
+
+float a=3500.0; // delay massimo- minima velocita di partenza
+     
+
+    delay(300);        //Permette di alzare il dito dal pulsante, altrimente legge HIGH anche quando non deve.
+    while(1){          // Esegue di continuo
+       
+  
+  float d =P*20.0;
+  float h= d/100.0;  // percentuale di tempo che toglie per accelerare
+  
+       if (a<=B) a=B;
+        else a=a-h;
+        
+        
+        long delay_Micros = a;
+        currentMicros = micros();
+       if(currentMicros - previousMicros >= delay_Micros)
+{
+          previousMicros = currentMicros;
+         
+          digitalWrite(Enable_PIN,LOW);
+          digitalWrite(DIR_PIN,HIGH); // orario
+          digitalWrite(STEP_PIN,HIGH);
+          delayMicroseconds(a);
+          digitalWrite(STEP_PIN,LOW);
+          delayMicroseconds(a);
+          
+          
+        } 
+        
+
+          if(digitalRead (buttonPin_RUN)==HIGH || digitalRead (FINISH_PIN)==1){//se premi il pulsante quanto il motore è in funzione o il finecorsa viene premuto
+              
+                  return;// esce dalla funzione e termina la rotazione...
+       
+         
+} 
+}
+} 
